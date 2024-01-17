@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TM_board_random</title>
+  <style>
+    canvas {
+      border: 1px solid #000;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="myCanvas" width="500" height="500"></canvas>
+
+  <script>
+    var canvas = document.getElementById('myCanvas');
+    var ctx = canvas.getContext('2d');
+    var sideLength = 30;
+    var hexagons = [];
+    var hexagon_status = [];
+
+
+    for(let line = 0; line < 9; line ++){
+        if (line < 5){
+            for(let i = 0; i < 5 + line; i++){
+                hexagons.push({ x:40 + sideLength * 1.73205 * (i + 2 - line * 0.5), y:70 + line * 45 });
+                hexagon_status.push(0);
+            }
+        } else {
+            for(let i = 0; i < 13 - line; i++){
+                hexagons.push({ x:40 + sideLength * 1.73205 * (i - 2 + line * 0.5), y:70 + line * 45 });
+                hexagon_status.push(0);
+            }
+        }
+        
+    }
+
+    var free = hexagon_status.length;
+
+
+    function drawHexagon(x, y, i, color) {
+      
+      ctx.beginPath();
+      ctx.moveTo(x + sideLength * Math.cos(Math.PI / 6), y + sideLength * Math.sin(Math.PI / 6));
+      for (var i = 1; i <= 6; i++) {
+        ctx.lineTo(x + sideLength * Math.cos(i * 2 * Math.PI / 6 + Math.PI / 6), y + sideLength * Math.sin(i * 2 * Math.PI / 6 + Math.PI / 6));
+      }
+      ctx.closePath();
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      if(color == 1){
+        ctx.fillStyle = '#660874';
+        ctx.fill();
+      } else if(color == 2){
+        ctx.fillStyle = '#8B0012';
+        ctx.fill();
+      } else {
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+      }
+      
+    }
+
+    function drawAllHexagons(status) {
+      hexagons.forEach((hexagon, i) => {
+        drawHexagon(hexagon.x, hexagon.y, i, status[i]);
+      })
+    }
+
+    function getCursorPosition(event) {
+      var rect = canvas.getBoundingClientRect();
+      var x = event.clientX - rect.left;
+      var y = event.clientY - rect.top;
+      var do_nothing = false;
+      hexagons.forEach(function (hexagon, index) {
+        if ((hexagon.x - x) * (hexagon.x - x) + (hexagon.y - y) * (hexagon.y - y) < sideLength * sideLength && !do_nothing) {
+          console.log('Clicked on hexagon ' + (index)); 
+          do_nothing = true;
+          if(hexagon_status[index] == 0){
+            hexagon_status[index] = 1;
+            free -= 1;
+          } else if(hexagon_status[index] > 0){
+            hexagon_status[index] = 0;
+            free += 1;
+          }
+        } else if (hexagon_status[index] == 2){
+            hexagon_status[index] = 1;
+        }
+      });
+
+      if(!do_nothing) {
+        const total = hexagon_status.length;
+        while(free > 0){
+            var randomNumber = Math.floor(Math.random() * total);
+            if(hexagon_status[randomNumber] == 0){
+                hexagon_status[randomNumber] = 2;
+                free -= 1;
+                break;
+            }
+        }
+      }
+
+      drawAllHexagons(hexagon_status);
+    }
+
+    canvas.addEventListener('click', getCursorPosition, false);
+    drawAllHexagons(hexagon_status);
+  </script>
+</body>
+</html>
